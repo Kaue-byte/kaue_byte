@@ -240,7 +240,7 @@
             .then(response => response.json())
             .then(data => {
                 const tabela = document.querySelector("#tabelaCandidatos tbody");
-                tabela.innerHTML = ""; 
+                tabela.innerHTML = ""; // Limpa os dados antigos
     
                 if (data.error) {
                     tabela.innerHTML = `<tr><td colspan="3">${data.error}</td></tr>`;

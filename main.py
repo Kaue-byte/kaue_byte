@@ -36,6 +36,7 @@ def receber():
     mydb = None
     mycursor = None
     try:
+        # 🚀 Verifica se a requisição contém JSON
 
         data = request.get_json()
         matricula = data['matricula']
@@ -62,7 +63,7 @@ def receber():
 
 @app.route("/voto_feito")
 def voto_feito():
-    return render_template("voto_feito.html")  
+    return render_template("voto_feito.html")  # Criar esta página no seu projeto
 
 @app.route('/get_votos')
 def get_votos():
@@ -162,4 +163,4 @@ def deletar():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(debug=True)
