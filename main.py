@@ -10,17 +10,16 @@ def homepage():
 @app.route('/get_buttons')
 def get_buttons():
     try:
-        mydb = conectar() 
+        mydb = conectar()
         mycursor = mydb.cursor()
-        
+
         mycursor.execute("SELECT nome_candidato, matricula FROM candidatos;")
-        candidatos = mycursor.fetchall()  
+        candidatos = mycursor.fetchall()
 
         if not candidatos:
             return jsonify({"error": "Nenhum candidato encontrado"}), 404
 
-        botoes = [{"nome": candidato[0], "matricula": candidato[1]} for candidato in candidatos] 
-        
+        botoes = [{"nome": c[0], "matricula": c[1]} for c in candidatos]
         return jsonify(botoes)
 
     except Exception as e:
@@ -30,6 +29,7 @@ def get_buttons():
             mycursor.close()
         if mydb:
             mydb.close()
+
 
 @app.route('/receber', methods=['POST'])
 def receber():
@@ -111,6 +111,7 @@ def cadastrar():
             mycursor.close()
         if mydb:
             mydb.close()
+
 
 @app.route('/get_candidatos')
 def get_candidatos():
