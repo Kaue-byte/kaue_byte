@@ -5,11 +5,11 @@ import mysql.connector
 db_config = {
     "host": os.getenv("DB_HOST"),
     "user": os.getenv("DB_USER"),
-    "password": os.getenv("DB_PASSWORD"),
+    "password": os.getenv(""),
     "database": os.getenv("DB_NAME"),
 }
 
-# Conecta ao banco
+# Conecta ao bancos
 try:
     conn = mysql.connector.connect(**db_config)
     cursor = conn.cursor()
