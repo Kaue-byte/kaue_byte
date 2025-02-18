@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Votação para Representante</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #ffffff;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+        h1 {
+            color: #b30000;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            background-color: #b30000;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn:hover {
+            background-color: #800000;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #B30000; /* 🔴 Vermelho */
+            color: white; /* Letras brancas para contraste */
+        }
+        
+        @media (max-width: 600px) {
+            table {
+                font-size: 14px;
+            }
+            th, td {
+                padding: 6px;
+            }
+        }
+        
+        form {
+            max-width: 300px;
+            margin: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        input, button {
+            margin-top: 10px;
+            padding: 8px;
+            border: 1px solid #B30000;
+            border-radius: 5px;
+        }
+        
+        button {
+            background-color: #B30000;
+            color: white;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #800000;
+        }
+        
+    </style>
+</head>
+<body>
+    <script>
+        async function carregarBotoes() {
+            let response = await fetch('/get_buttons');
+            let botoes = await response.json();
+        
+            let container = document.getElementById("botoes");
+            container.innerHTML = ""; // Limpa antes de adicionar novos botões
+        
+            botoes.forEach(botao => {
+                let btn = document.createElement("button");
+                btn.innerText = botao.nome; // Nome do candidato visível
+                btn.className = "btn";  // Aplicando estilo CSS
+                btn.setAttribute("data-matricula", botao.matricula); // Ocultando a matrícula
+                btn.onclick = () => votar(botao.nome, botao.matricula); // Passar nome e matrícula
+                container.appendChild(btn);
+            });
+        }
+
+        function votar(nome, matricula) {
+            fetch('/receber', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ matricula: matricula }) 
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro: ${response.status} - ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Resposta do servidor:', data);
+                if (data.redirect) {
+                    window.location.href = data.redirect; // 🔴 Redireciona para a página correta
+                }
+            })
+            .catch(error => console.error('Erro na requisição:', error));
+        }
+        
+        
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch('/get_votos')
+                .then(response => response.json())
+                .then(data => {
+                    const tabela = document.querySelector("#tabelaVotos tbody");
+                    tabela.innerHTML = ""; // Limpa qualquer dado anterior
+        
+                    if (data.error) {
+                        tabela.innerHTML = `<tr><td colspan="2">${data.error}</td></tr>`;
+                        return;
+                    }
+        
+                    data.forEach(candidato => {
+                        const row = `<tr>
+                            <td>${candidato.nome}</td>
+                            <td>${candidato.votos}</td>
+                        </tr>`;
+                        tabela.innerHTML += row;
+                    });
+                })
+                .catch(error => console.error("Erro ao buscar votos:", error));
+        });
+        
+
+
+    </script>
+    
+    
+    <div class="container">
+        <h1>Vote no Representante</h1>
+            <body onload="carregarBotoes()">
+                <div id="botoes" class = "bnt"></div>
+    </div>
+
+
+    <table id="tabelaVotos">
+        <thead>
+            <tr>
+                <th>Candidato</th>
+                <th>Votos</th>
+            </tr>
+        </thead>
+        <tbody>
+           
+        </tbody>
+    </table>
+
+    <h2>Cadastrar Candidato</h2>
+    <form id="cadastroForm">
+        <label for="nome_candidato">Nome do Candidato:</label>
+        <input type="text" id="nome_candidato" required>
+    
+        <label for="matricula">Matrícula:</label>
+        <input type="text" id="matricula" required>
+    
+        <button type="submit">Cadastrar</button>
+    </form>
+    
+    <p id="mensagem"></p>
+    
+    <script>
+        document.getElementById("cadastroForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+    
+            const nome_candidato = document.getElementById("nome_candidato").value;
+            const matricula = document.getElementById("matricula").value;
+    
+            fetch('/cadastrar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome_candidato, matricula })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("mensagem").textContent = data.message || data.error;
+            })
+            .catch(error => console.error("Erro ao cadastrar:", error));
+        });
+    </script>
+
+<p id="mensagem"></p>
+<h2>Painel de Candidatos</h2>
+<table id="tabelaCandidatos">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Matrícula</th>
+            <th>Ação</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+    </tbody>
+</table>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        carregarCandidatos();
+    });
+    
+    function carregarCandidatos() {
+        fetch('/get_candidatos')
+            .then(response => response.json())
+            .then(data => {
+                const tabela = document.querySelector("#tabelaCandidatos tbody");
+                tabela.innerHTML = ""; // Limpa os dados antigos
+    
+                if (data.error) {
+                    tabela.innerHTML = `<tr><td colspan="3">${data.error}</td></tr>`;
+                    return;
+                }
+    
+                data.forEach(candidato => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${candidato.nome}</td>
+                        <td>${candidato.matricula}</td>
+                        <td><button onclick="deletarCandidato('${candidato.matricula}')">🗑 Excluir</button></td>
+                    `;
+                    tabela.appendChild(row);
+                });
+            })
+            .catch(error => console.error("Erro ao buscar candidatos:", error));
+    }
+    
+    function deletarCandidato(matricula) {
+        if (!confirm("Tem certeza que deseja excluir este candidato?")) return;
+    
+        fetch('/deletar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ matricula })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("mensagem").textContent = data.message || data.error;
+            carregarCandidatos();
+        })
+        .catch(error => console.error("Erro ao excluir candidato:", error));
+    }
+    
+</script>
+<p id="mensagem"></p>
+
+
+</body>
+</html>
